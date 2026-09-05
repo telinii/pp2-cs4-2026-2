@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "tsx watch ./src/bin/server",
+    "dev": "tsx watch ./src/bin/server.ts",
     "start": "node ./dist/bin/server.js",
     "build": "rimraf dist && npx tsc",
     "postbuild": "copyfiles -u 1 src/views/*.null dist",
