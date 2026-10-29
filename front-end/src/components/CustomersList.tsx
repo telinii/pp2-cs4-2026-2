@@ -7,7 +7,7 @@ type CustomerListProps = {
 }
 
 
-export function CustomersLists() {
+export function CustomersList() {
 
   const [customers, setCustomers] = useState<Customer[]>
   
