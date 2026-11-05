@@ -1,116 +1,94 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Customer } from '../types/Customer'
-
-
-type CustomerListProps = {
- list?: Customer[]
-}
-
+import { Link } from 'react-router'
 
 export function CustomersList() {
+  const [customers, setCustomers] = useState<Customer[]>([])
 
-  const [customers, setCustomers] = useState<Customer[]>
-  
- // Esta função está marcada com `async` porque, dentro dela,
- // há uma ou mais instruções assíncronas, isto é, que podem
- // ser executadas fora da ordem esperada, devido, por exemplo,
- // à espera da resposta de um servidor remoto.
- async function fetchData() {
-   // Obtém o endereço do servidor de back-end a partir
-   // da variável de ambiente VITE_API_BASE configurada
-   // no arquivo .env.local
-   const apiHost = import.meta.env.VITE_API_BASE
+  async function fetchData() {
+    const apiHost = import.meta.env.VITE_API_BASE
 
+    try {
+      const response = await fetch(`${apiHost}/customers`)
 
-   try {
-     // Aqui, é onde acontece a chamada ao back-end. A palavra-chave
-     // `await` na frente de fetch() indica que esta é uma instrução
-     // assíncrona, e `await` garante que a execução do código não
-     // prosseguirá enquanto uma resposta do servidor remoto (ou um
-     // erro) for recebido.
-     // Para usar `await` em uma função, é necessário marcá-la como
-     // `async` na declaração. Essas duas palavras-chave (`async` e
-     // `await` SEMPRE andam juntas.
-     const response = await fetch(`${apiHost}/customers`)
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`)
+      }
 
+      const data: Customer[] = await response.json()
+      setCustomers(data)
+    } catch (error) {
+      if (error instanceof Error) {
+        window.alert('ERRO: ' + error.message)
+      }
+    }
+  }
 
-     // Aqui já tivemos uma resposta do servidor, e verificamos se ela
-     // não contém erro
-     if (!response.ok) {
-       throw new Error(`Erro HTTP ${response.status}`)
-     }
+  useEffect(() => {
+    fetchData()
+  }, [])
 
+  return (
+    <>
+      <h2 className="h2 mb-3">Listagem de Clientes</h2>
 
-     // Mais uma instrução assíncrona (`await`), desta vez para extrair
-     // os dados em formato JSON a partir da resposta recebida
-     const data: Customer[] = await response.json()
+      <p className="text-secondary">
+        Total de clientes: {customers.length}
+      </p>
 
+      <div className="text-end mb-3">
+        <Link to="/customers/new" className="btn btn-outline-primary">
+          Novo cliente
+        </Link>
+      </div>
 
-     // Se tudo ocorreu bem até aqui, atualizamos a variável de estado
-     // `customers` com os dados recebidos, usando a função `set`
-     // correspondente
-     setCustomers(data)
+      <div className="table-responsive">
+        <table className="table table-striped table-hover align-middle">
+          <thead className="table-dark">
+            <tr>
+              <th scope="col">Código</th>
+              <th scope="col">Nome</th>
+              <th scope="col">CPF</th>
+              <th scope="col">E-mail</th>
+              <th scope="col">Telefone</th>
+              <th scope="col">Município</th>
+              <th scope="col">UF</th>
+              <th scope="col" className="text-end">Ações</th>
+            </tr>
+          </thead>
 
+          <tbody>
+            {customers.map(customer => (
+              <tr key={customer.id}>
+                <td>{customer.id}</td>
+                <td>{customer.name}</td>
+                <td>{customer.ident_document}</td>
+                <td>{customer.email}</td>
+                <td>{customer.phone}</td>
+                <td>{customer.municipality}</td>
+                <td>{customer.state}</td>
+                <td className="text-end">
+                  <Link
+                    to={`/customers/${customer.id}`}
+                    className="btn btn-outline-primary"
+                    aria-label={`Editar cliente ${customer.name}`}
+                  >
+                    Editar
+                  </Link>
+                </td>
+              </tr>
+            ))}
 
-   }
-   // Se algo der errado dentro do bloco `try` (como, por exemplo, falta
-   // de conectividade com o servidor de back-end), o bloco `catch` é
-   // executado
-   catch (error) {
-     if (error instanceof Error) {
-       window.alert('ERRO: ' + error.message)
-     }
-   }
- }
-
- return (
-   <>
-
-
-     <p className="text-secondary">
-       Total de clientes: {list.length}
-     </p>
-
-
-     <div className="table-responsive">
-       <table className="table table-striped table-hover align-middle">
-         <thead className="table-dark">
-           <tr>
-             <th scope="col">Código</th>
-             <th scope="col">Nome</th>
-             <th scope="col">CPF</th>
-             <th scope="col">E-mail</th>
-             <th scope="col">Telefone</th>
-             <th scope="col">Município</th>
-             <th scope="col">UF</th>
-           </tr>
-         </thead>
-
-
-         <tbody>
-           {list.map(list => (
-             <tr key={list.id}>
-               <td>{list.id}</td>
-               <td>{list.name}</td>
-               <td>{list.ident_document}</td>
-               <td>{list.email}</td>
-               <td>{list.phone}</td>
-               <td>{list.municipality}</td>
-               <td>{list.state}</td>
-             </tr>
-           ))}
-
-
-           {list.length === 0 && (
-             <tr>
-               <td colSpan={7} className="text-center text-secondary">
-                 Nenhum cliente cadastrado.
-               </td>
-             </tr>
-           )}
-         </tbody>
-       </table>
-     </div>
-   </>
- )
+            {customers.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center text-secondary">
+                  Nenhum cliente cadastrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
 }
