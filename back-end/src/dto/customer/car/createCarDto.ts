@@ -9,5 +9,4 @@ export interface CreateCarDto {
  selling_price?: number | null;
  customer_id?: number | null;
 }
-r_id?: number | null;
-}
+
